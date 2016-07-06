@@ -10,3 +10,4 @@ public interface MysvcServiceImpl extends MysvcService {
 //List<OperationError> findOperationError();
 
 //List<OperationError> findById(String id) {}
+}
