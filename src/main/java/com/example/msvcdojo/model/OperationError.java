@@ -4,7 +4,6 @@ package com.example.msvcdojo.model;
  * Created by Josep Maria on 06/07/2016.
  */
 public class OperationError {
-
     String id;
     String entityType;
     String originSystem;

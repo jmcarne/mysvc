@@ -1,6 +1,6 @@
-package com.cellnex.api.sca;
+package com.example.msvcdojo;
 
-import com.example.msvcdojo.model.OperationError;
+import com.example.msvcdojo.model.Subscription;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,6 +10,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
 import java.sql.*;
@@ -22,7 +23,7 @@ public class JVConsultaController {
 
     private static final Logger logger = Logger.getLogger(JVConsultaController.class);
     private static String[] connSrRodo = {"jdbc:mysql://localhost:3306/endesa", "root", "root"};
-    private static String[] connH2 = {"jdbc:h2:mem//localhost:3306/testdb", "sa", "sa"};
+    private static String[] connH2 = {"jdbc:h2:~/test://localhost:3306/testdb", "sa", "Pepamaca11"};
     private Connection srRodo, srh2;
     private PreparedStatement pstmt;
     private ResultSet rsIns;
@@ -41,7 +42,7 @@ public class JVConsultaController {
     }
 
     public boolean connectionH2() {
-        String sql = "SELECT 1 FROM DUAL";
+        String sql = "select * from user_subscription";
         boolean var = true;
         try {
             Class.forName("org.h2.Driver");
@@ -57,38 +58,41 @@ public class JVConsultaController {
         return var;
     }
 
-    @RequestMapping(value = "/errores/{fabricante}", method = RequestMethod.GET, produces = "application/json")
-    public String OperationError(@PathVariable String fabricante, ModelMap model) {
-
+    @RequestMapping(value = "/info/{user}", method = RequestMethod.GET, produces = "application/json")
+    public ModelAndView getSubscription(@PathVariable String user, ModelMap model) {
         ObjectMapper obj = new ObjectMapper();
-
-        String sql = "SELECT e.mond_id, e.mon_state from sr_prod_es.mw_operation e, srd_prod_es.mw_operation_error o where" +
-                "e.mon_id = o.mon_id and e.state = new order by create_date desc";
+        ModelAndView modelAndView = new ModelAndView("result");
+        String sql = "SELECT e.user, e.type, e.substable from user_subscription e"
+                + " where e.user=?";
 
         String jsonInString = "";
-        List<OperationError> result = new ArrayList<OperationError>();
+        List<Subscription> result = new ArrayList<Subscription>();
 
         try {
-            Class.forName("com.mysql.jdbc.Driver");
-            srRodo = DriverManager.getConnection(connSrRodo[0], connSrRodo[1], connSrRodo[2]);
-            PreparedStatement pstmt = (PreparedStatement) srRodo.prepareStatement(sql);
-            pstmt.setString(1, fabricante);
+            Class.forName("org.h2.Driver");
+//            srRodo = DriverManager.getConnection(connSrRodo[0], connSrRodo[1], connSrRodo[2]);
+            srh2 = DriverManager.getConnection(connH2[0], connH2[1], connH2[2]);
+            PreparedStatement pstmt = (PreparedStatement) srh2.prepareStatement(sql);
+            pstmt.setString(1, user);
             rsIns = pstmt.executeQuery();
 
             while (rsIns.next()) {
 
-                OperationError operationError = new OperationError();
-                operationError.setId(rsIns.getString(1));
-                result.add(operationError);
+                Subscription subscription = new Subscription();
+                subscription.setUser(rsIns.getString(1));
+                subscription.setType(rsIns.getString(2));
+                subscription.setSubstable(rsIns.getString(3));
+                result.add(subscription);
             }
 
-            Logger.getLogger("sensorByManufacturer: Rows " + result.size());
+            Logger.getLogger("Subscription: Rows " + result.size());
 
             jsonInString = obj.writeValueAsString(result);
 
-            model.addAttribute("result", jsonInString);
+//            model.addAttribute("result", jsonInString);
 
-            closeConn();
+            modelAndView.addObject("result", jsonInString);
+
         } catch (JsonGenerationException e) {
             logger.error("JsonGenerationException :: ", e);
         } catch (JsonMappingException e) {
@@ -98,28 +102,31 @@ public class JVConsultaController {
         } catch (Exception e) {
             logger.error("Exception :: ", e);
         }
-        return "jsonTemplate";
+//        return "jsonTemplate";
+//        return new ModelAndView("messages/subscription", "message", jsonInString);
+        closeConn();
+        return modelAndView;
     }
 
-//    public ResponseEntity<User> getUser(@PathVariable("id") long id) {
-//        User user = userService.findById(id);
-//        if (user == null) {
-//            return new ResponseEntity<User>(HttpStatus.NOT_FOUND);
-//        }
-//        return new ResponseEntity<User>(user, HttpStatus.OK);
-//    }
+    /*public ResponseEntity<User> getUser(@PathVariable("id") long id) {
+        User user = userService.findById(id);
+        if (user == null) {
+            return new ResponseEntity<User>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<User>(user, HttpStatus.OK);
+    }*/
 
 
     /* -------------------Create a User-------------------------------------------------------- */
 
-    //  @RequestMapping(method = RequestMethod.POST)
-    //@ResponseBody
-    //public void addComputer(@RequestBody Computer computer) {
-    //computerStorage.add(computer);
-    //}
-    //
+    /*@RequestMapping(method = RequestMethod.POST)
+    @ResponseBody
+    public void addComputer(@RequestBody Computer computer) {
+        computerStorage.add(computer);
+    }*/
+
     ////TODO
-    //
+
     //Test POST http://localhost:8080/SpringREST/rest/computer
     //Before sending the request, add an http header Content-Type with the button
 
@@ -133,17 +140,18 @@ public class JVConsultaController {
 	/* -------------------Create a Subscription---------------------------------------------- */
 
     //@RequestMapping(value = "/subscription/create", method = RequestMethod.POST)
-    /*public ResponseEntity<Void> createSubscription(@RequestBody Subscription subscription) {
+    //public ResponseEntity<Void> createSubscription(@RequestBody Subscription subscription) {
         // check if subscription exist..
 
-		if (true Subscription already exist.. userService.isUserExist(user)) {
-			closeConn();
+		/*if (true Subscription already exist.. userService.isUserExist(user)) {
+            closeConn();
             return new ResponseEntity<Void>(HttpStatus.CONFLICT);
         }
 
         // Save subscription
 
-        //HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = new HttpHeaders();
+        PathTransitionBuilder ucBuilder = null;
         //headers.setLocation(ucBuilder.path("/user/{id}").buildAndExpand(user.getId()).toUri());
 		closeConn();
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
@@ -151,13 +159,13 @@ public class JVConsultaController {
 
 	/* -------------------Retrieve a Subscription---------------------------------------------- */
 
-    //@RequestMapping(value = "/subscription/read/{user}", method = RequestMethod.GET)
-    /*ublic ResponseEntity<List> readSubscriptions(@PathVariable String user) { //List<Subscription>
+    /*@RequestMapping(value = "/subscription/read/{user}", method = RequestMethod.GET)
+    public ResponseEntity<List> readSubscriptions(@PathVariable String user) { //List<Subscription>
 		List<Subscription> subscriptions = new ArrayList<Subscription>(); //Get the subscriptions here!!!!
 		String tmp = "";
 		try {
 			Class.forName("com.vertica.jdbc.Driver");
-			Connection connSupp = DriverManager.getConnection(connSuppStr[0], connSuppStr[1], connSuppStr[2]);
+			Connection connSupp = DriverManager.getConnection(connH2[0], connH2[1], connH2[2]);
 			stmt = connSupp.createStatement();
 			Statement stmtSupp = connSupp.createStatement();
 			ResultSet rsIns = null;
@@ -171,36 +179,37 @@ public class JVConsultaController {
 	        }
 		} catch (Exception e) { tmp = e.toString(); }
 
-		//if(subscriptions.isEmpty()){
-            //return new ResponseEntity<List<Subscription>>(HttpStatus.NO_CONTENT);//You many decide to return HttpStatus.NOT_FOUND
-        //}
-        //return new ResponseEntity<List<Subscription>>(subscriptions, HttpStatus.OK);
+		/*if(subscriptions.isEmpty()){
+            return new ResponseEntity<List<Subscription>>(HttpStatus.NO_CONTENT);//You many decide to return HttpStatus.NOT_FOUND
+        }
+        return new ResponseEntity<List<Subscription>>(subscriptions, HttpStatus.OK);
 
 		String str = Integer.toString(subscriptions.size());
 		str = tmp;
 		closeConn();
-        return new ResponseEntity<List>(str, HttpStatus.OK);
+        //return new ResponseEntity<List>(str, HttpStatus.OK);
+        return null;
 	}*/
 
     /*------------------- Update a User --------------------------------------------------------*/
 
 	/*@RequestMapping(value = "/subscription/update/{id}", method = RequestMethod.PUT)
-	public ResponseEntity<Subscription> updateSubscription(@PathVariable("id") long id, @RequestBody Subscription subscription) {
-		// The id exist?
-		User currentUser = userService.findById(id);
+    public ResponseEntity<Subscription> updateSubscription(@PathVariable("id") long id, @RequestBody Subscription subscription) {
+    // The id exist?
+      //User currentUser = userService.findById(id);
 
-        if (true) {
+      if (true) {
             //try { conn.close();	} catch (Exception e) {	}
             return new ResponseEntity<Subscription>(HttpStatus.NOT_FOUND);
-        } else {
+      } else {
 
 		}
 
         // Set the subscription
-        //currentUser.setName(user.getName());
-        //currentUser.setAge(user.getAge());
-        //currentUser.setSalary(user.getSalary());
-        //userService.updateUser(currentUser);
+        currentUser.setName(user.getName());
+        currentUser.setAge(user.getAge());
+        currentUser.setSalary(user.getSalary());
+        userService.updateUser(currentUser);
 
         closeConn();
         return new ResponseEntity<Subscription>(subscription, HttpStatus.OK);
@@ -211,22 +220,24 @@ public class JVConsultaController {
     //@RequestMapping(value = "/subscription/delete/{id}", method = RequestMethod.DELETE)
     /*public ResponseEntity<Void> deleteSubscription(@PathVariable("id") long id) {
         // Find subscription
+        Subscription subscription = null;
 		//User user = userService.findById(id);
 
-		if (true//user == null) {
+		if (subscription.getUser() != "" && subscription.getUser().equals(null)){
+            //user == null) {
 			closeConn();
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } else {
-
+            //
 		}
 
         // Delete
 		//userService.deleteUserById(id);
 		closeConn();
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        //return new ResponseEntity<User>(HttpStatus.NO_CONTENT);
+      return null;
 	}
-	*/
-
+*/
     private void closeConn() {
         try {
             rsIns.close();
