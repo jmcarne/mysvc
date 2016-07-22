@@ -11,7 +11,22 @@ public class HibernateUtils {
 
     private static final Logger logger = Logger.getLogger(HibernateUtils.class);
     private static String[] connSrRodo = {"jdbc:mysql://localhost:3306/endesa", "root", "root"};
-    private Connection srRodo;
+    private static String[] connSrRodoH2 = {"jdbc:h2:~/test://localhost:3306/testdb", "sa", "Pepamaca11"};
+    private static Connection srRodo, srRodoH2;
+
+    public static void closeConn() {
+        PreparedStatement pstmt = null;
+        ResultSet rsIns = null;
+
+        try {
+            rsIns.close();
+            pstmt.close();
+            srRodo.close();
+        } catch (SQLException e) {
+            Logger.getLogger("Close connection: ");
+            e.getMessage();
+        }
+    }
 
     public Connection getConnection() {
         try {
@@ -31,17 +46,21 @@ public class HibernateUtils {
         return srRodo;
     }
 
-    public void closeConn() {
-        PreparedStatement pstmt = null;
-        ResultSet rsIns = null;
-
+    public Connection getConnectionh2() {
         try {
-            rsIns.close();
-            pstmt.close();
-            srRodo.close();
-        } catch (SQLException e) {
-            Logger.getLogger("Close connection: ");
+            Class.forName("org.h2.Driver");
+            srRodoH2 = DriverManager.getConnection(connSrRodoH2[0], connSrRodoH2[1], connSrRodoH2[2]);
+
+        } catch (ClassNotFoundException e) {
             e.getMessage();
+        } catch (SQLException e) {
+            e.getMessage();
+        } finally {
+            if (srRodo != null) {
+                closeConn();
+            }
         }
+
+        return srRodoH2;
     }
 }

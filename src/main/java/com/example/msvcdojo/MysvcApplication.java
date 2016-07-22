@@ -10,4 +10,3 @@ public class MysvcApplication {
         SpringApplication.run(MysvcApplication.class, args);
     }
 }
-

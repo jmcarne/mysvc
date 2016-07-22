@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BackWeb</title>
+    <link rel="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
+    <script type="javascript" href="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"/>
+
+</head>
+<body>
+<thead></thead>
+<tbody></tbody>
+<tfoot></tfoot>
+<table id="test"></table>
+<script type="text/javascript">
+        $(document).ready(function() {
+        $('#test').DataTable( {
+            "scrollY": "370px",
+            scrollCollapse: true,
+            "ajax": "/api/test/?mosMonId=${mosMonId}?numReq=${numReq}",
+            "columns": [
+                { "data": "mosId" },
+                { "data": "mosEntityId" },
+                { "data": "entityType" },
+                { "data": "processType" },
+                { "data": "mosMonId" }
+            ]
+        } );
+        $('#test tbody')
+            .on( 'mouseenter', 'td', function () {
+                var colIdx = $('#test').DataTable().cell(this).index().column;
+
+                $( $('#test').DataTable().cells().nodes() ).removeClass( 'highlight' );
+                $( $('#test').DataTable().column( colIdx ).nodes() ).addClass( 'highlight' );
+            } );
+    } );
+
+
+</script>
+</body>
+</html>

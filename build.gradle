@@ -23,9 +23,9 @@ targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
-    flatDir {
-        dirs 'libs'
-    }
+//    flatDir {
+//        dirs 'libs'
+//    }
 }
 
 
@@ -49,6 +49,7 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion")
     compile("org.springframework.boot:spring-boot-starter-data-rest:$springBootVersion")
     runtime("mysql:mysql-connector-java:5.1.38")
+    runtime("com.h2database:h2:1.4.190")
 }
 
 

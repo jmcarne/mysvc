@@ -12,5 +12,4 @@ public class JdbcMysvcRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-
 }

@@ -1,18 +1,14 @@
 package com.example.msvcdojo;
 
+import com.example.msvcdojo.common.HibernateUtils;
 import com.example.msvcdojo.model.Subscription;
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.ModelAndView;
 
-import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,22 +54,16 @@ public class JVConsultaController {
         return var;
     }
 
-    @RequestMapping(value = "/info/{user}", method = RequestMethod.GET, produces = "application/json")
-    public ModelAndView getSubscription(@PathVariable String user, ModelMap model) {
+    @RequestMapping(value = "/test", method = RequestMethod.GET, produces = "application/json")
+    public String getSubscription(ModelMap model) {
         ObjectMapper obj = new ObjectMapper();
-        ModelAndView modelAndView = new ModelAndView("result");
-        String sql = "SELECT e.user, e.type, e.substable from user_subscription e"
-                + " where e.user=?";
+        String sql = "SELECT e.user, e.type, e.substable from user_subscription e";
 
-        String jsonInString = "";
         List<Subscription> result = new ArrayList<Subscription>();
 
         try {
-            Class.forName("org.h2.Driver");
-//            srRodo = DriverManager.getConnection(connSrRodo[0], connSrRodo[1], connSrRodo[2]);
-            srh2 = DriverManager.getConnection(connH2[0], connH2[1], connH2[2]);
-            PreparedStatement pstmt = (PreparedStatement) srh2.prepareStatement(sql);
-            pstmt.setString(1, user);
+
+            PreparedStatement pstmt = srh2.prepareStatement(sql);
             rsIns = pstmt.executeQuery();
 
             while (rsIns.next()) {
@@ -85,27 +75,15 @@ public class JVConsultaController {
                 result.add(subscription);
             }
 
-            Logger.getLogger("Subscription: Rows " + result.size());
+            model.addAttribute("data", result);
 
-            jsonInString = obj.writeValueAsString(result);
+            HibernateUtils.closeConn();
 
-//            model.addAttribute("result", jsonInString);
-
-            modelAndView.addObject("result", jsonInString);
-
-        } catch (JsonGenerationException e) {
-            logger.error("JsonGenerationException :: ", e);
-        } catch (JsonMappingException e) {
-            logger.error("JsonGenerationException :: ", e);
-        } catch (IOException e) {
-            logger.error("IOException :: ", e);
         } catch (Exception e) {
             logger.error("Exception :: ", e);
         }
-//        return "jsonTemplate";
-//        return new ModelAndView("messages/subscription", "message", jsonInString);
-        closeConn();
-        return modelAndView;
+
+        return "jsonTemplate";
     }
 
     /*public ResponseEntity<User> getUser(@PathVariable("id") long id) {
@@ -238,14 +216,14 @@ public class JVConsultaController {
       return null;
 	}
 */
-    private void closeConn() {
-        try {
-            rsIns.close();
-            pstmt.close();
-            srRodo.close();
-        } catch (SQLException e) {
-            Logger.getLogger("Close connection: ");
-            e.getMessage();
-        }
-    }
+//    private void closeConn() {
+//        try {
+//            rsIns.close();
+//            pstmt.close();
+//            srRodo.close();
+//        } catch (SQLException e) {
+//            Logger.getLogger("Close connection: ");
+//            e.getMessage();
+//        }
+//    }
 }
